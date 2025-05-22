@@ -2,12 +2,14 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Tetris Móvil</title>
+  
+  <!-- Configuración PWA -->
+  <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ff6b6b">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
   
   <style>
@@ -290,16 +292,6 @@
     const scale = 20;
     ctx.scale(scale, scale);
 
-    // Ajusta el tamaño del canvas para móviles
-    function resizeCanvas() {
-      const width = Math.min(window.innerWidth - 40, 300);
-      canvas.width = width;
-      canvas.height = width * 1.8;
-      ctx.scale(width / 240, width / 240);
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
     // Pantallas
     const gameScreen = document.getElementById('gameScreen');
     const menuScreen = document.getElementById('menuScreen');
@@ -387,6 +379,25 @@
       { shape: [[1, 0, 0], [1, 1, 1], [0, 0, 0]], type: 'J' },
       { shape: [[0, 0, 1], [1, 1, 1], [0, 0, 0]], type: 'L' }
     ];
+
+    // Inicialización
+    function initGame() {
+      // Cargar puntuación máxima
+      highScore = localStorage.getItem('tetrisHighScore') || 0;
+      highScoreDisplay.textContent = highScore;
+      
+      // Cargar configuración de colores
+      const savedBodyColor = localStorage.getItem('tetrisBodyColor') || '#222222';
+      const savedTextColor = localStorage.getItem('tetrisTextColor') || '#ffffff';
+      
+      bodyColorPicker.value = savedBodyColor;
+      textColorPicker.value = savedTextColor;
+      
+      updateColors();
+      setupEventListeners();
+      showMenu();
+      checkPWAInstallable();
+    }
 
     // Funciones del juego
     function createMatrix(w, h) {
@@ -476,12 +487,15 @@
         linesDisplay.textContent = `${linesCleared} (Máx: ${highScore})`;
         scoreDisplay.textContent = score;
 
+        // Actualizar puntuación máxima si es necesario
         if (score > highScore) {
           highScore = score;
           localStorage.setItem('tetrisHighScore', highScore);
           highScoreDisplay.textContent = highScore;
+          linesDisplay.textContent = `${linesCleared} (Máx: ${highScore})`;
         }
 
+   
         if (linesCleared >= level * 2) {
           level++;
           dropInterval = Math.max(100, 1000 - (level * 50));
@@ -587,9 +601,11 @@
       const touchY = e.touches[0].clientY;
       const rect = canvas.getBoundingClientRect();
       
+      // Convertir coordenadas de pantalla a coordenadas del juego
       const gameX = Math.floor((touchX - rect.left) / scale);
       const gameY = Math.floor((touchY - rect.top) / scale);
       
+      // Verificar si el toque está dentro de la pieza actual
       let isTouchingPiece = false;
       
       for (let y = 0; y < currentPiece.shape.length; y++) {
@@ -608,6 +624,7 @@
       touchStartY = touchY;
       touchMoved = false;
       
+      // Si no está tocando la pieza, marcar para posible rotación
       if (!isTouchingPiece) {
         setTimeout(() => {
           if (!touchMoved && isTouching) {
@@ -633,9 +650,11 @@
         
         const now = Date.now();
         if (now - lastMoveTime > moveDelay) {
+          // Mover horizontalmente
           if (Math.abs(deltaX) > Math.abs(deltaY)) {
             move(deltaX > 0 ? 1 : -1);
           } 
+          // Mover verticalmente (descenso rápido)
           else if (deltaY > 0) {
             fastDrop = true;
           }
@@ -702,23 +721,28 @@
     }
 
     function updateColors() {
+      // Actualizar colores de las piezas
       for (const [type, picker] of Object.entries(colorPickers)) {
         colors[type] = picker.value;
       }
       
+      // Actualizar colores del tablero
       colors.background = bgColorPicker.value;
       colors.border = borderColorPicker.value;
       colors.grid = gridColorPicker.value;
       
+      // Aplicar cambios visuales
       const bodyColor = bodyColorPicker.value;
       const textColor = textColorPicker.value;
       
       document.body.style.backgroundColor = bodyColor;
       document.body.style.color = textColor;
       
+      // Guardar en localStorage
       localStorage.setItem('tetrisBodyColor', bodyColor);
       localStorage.setItem('tetrisTextColor', textColor);
       
+      // Aplicar a botones (excepto los especiales)
       const buttons = document.querySelectorAll('button:not(#resumeBtn):not(#menuFromGameBtn)');
       buttons.forEach(button => {
         button.style.color = textColor;
@@ -789,6 +813,7 @@
     }
 
     function setupEventListeners() {
+      // Botones de pantalla
       startBtn.addEventListener('click', showGame);
       customizeBtn.addEventListener('click', showCustomize);
       backBtn.addEventListener('click', showMenu);
@@ -797,14 +822,17 @@
       resumeBtn.addEventListener('click', togglePause);
       menuFromGameBtn.addEventListener('click', showMenu);
       
+      // Pausa
       pauseBtn.addEventListener('click', togglePause);
       
+      // Pausar cuando se sale de la ventana
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden' && !isPaused && !gameOver && gameScreen.style.display === 'flex') {
           togglePause();
         }
       });
       
+      // Selectores de color
       bodyColorPicker.addEventListener('input', updateColors);
       textColorPicker.addEventListener('input', updateColors);
       bgColorPicker.addEventListener('input', updateColors);
@@ -814,10 +842,12 @@
         picker.addEventListener('input', updateColors);
       }
       
+      // Controles táctiles mejorados
       canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
       canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
       canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
       
+      // Controles de teclado (para probar en desktop)
       document.addEventListener('keydown', event => {
         if (gameOver) return;
         
@@ -841,6 +871,7 @@
         }
       });
       
+      // Registrar Service Worker
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('service-worker.js')
@@ -854,22 +885,7 @@
       }
     }
 
-    function initGame() {
-      highScore = localStorage.getItem('tetrisHighScore') || 0;
-      highScoreDisplay.textContent = highScore;
-      
-      const savedBodyColor = localStorage.getItem('tetrisBodyColor') || '#222222';
-      const savedTextColor = localStorage.getItem('tetrisTextColor') || '#ffffff';
-      
-      bodyColorPicker.value = savedBodyColor;
-      textColorPicker.value = savedTextColor;
-      
-      updateColors();
-      setupEventListeners();
-      showMenu();
-      checkPWAInstallable();
-    }
-
+    // Iniciar el juego cuando se carga la páginas
     window.addEventListener('load', initGame);
   </script>
 </body>
