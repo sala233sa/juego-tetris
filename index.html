@@ -285,12 +285,19 @@
     <button id="menuBtn">Menú Principal</button>
   </div>
 
+  <!-- Audio para efectos de sonido -->
+  <audio id="blockSound" preload="auto">
+    <source src="block-place.mp3" type="audio/mpeg">
+    Tu navegador no soporta audio HTML5.
+  </audio>
+
   <script>
     // Elementos del juego
     const canvas = document.getElementById('tetris');
     const ctx = canvas.getContext('2d');
     const scale = 20;
     ctx.scale(scale, scale);
+    const blockSound = document.getElementById('blockSound');
 
     // Pantallas
     const gameScreen = document.getElementById('gameScreen');
@@ -397,6 +404,10 @@
       setupEventListeners();
       showMenu();
       checkPWAInstallable();
+
+      // Precargar sonido (opcional)
+      blockSound.volume = 0.3; // Ajustar volumen (0-1)
+      blockSound.load();
     }
 
     // Funciones del juego
@@ -465,6 +476,15 @@
           }
         });
       });
+
+      // Reproducir sonido al colocar pieza
+      playBlockSound();
+    }
+
+    function playBlockSound() {
+      // Reiniciar y reproducir sonido
+      blockSound.currentTime = 0;
+      blockSound.play().catch(e => console.log("Error al reproducir sonido:", e));
     }
 
     function clearLines() {
@@ -495,7 +515,6 @@
           linesDisplay.textContent = `${linesCleared} (Máx: ${highScore})`;
         }
 
-   
         if (linesCleared >= level * 2) {
           level++;
           dropInterval = Math.max(100, 1000 - (level * 50));
@@ -883,9 +902,16 @@
             });
         });
       }
+
+      // Permitir sonido en móviles después de interacción
+      document.addEventListener('click', () => {
+        blockSound.play().then(() => {
+          console.log("Audio desbloqueado");
+        }).catch(e => console.log("Error al desbloquear audio:", e));
+      }, { once: true });
     }
 
-    // Iniciar el juego cuando se carga la páginas
+    // Iniciar el juego cuando se carga la página
     window.addEventListener('load', initGame);
   </script>
 </body>
