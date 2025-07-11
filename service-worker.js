@@ -1,62 +1,55 @@
-const CACHE_NAME = 'tetris-offline-v4';
+// service-worker.js
+const CACHE_NAME = 'tetris-offline-v3';
 const ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  // Agrega aquí otros recursos si los añades (CSS, JS, imágenes)
+  './',                  // Raíz del sitio
+  './index.html',        // Archivo principal
+  './manifest.json',     // Config PWA
+  // './icon-192.png',   // Descomenta si añades íconos
+  // './icon-512.png'
 ];
 
-// Instalación y caching de recursos
+// ----- Instalación -----
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Cache abierto');
-        return cache.addAll(ASSETS);
-      })
-      .then(() => self.skipWaiting())
+      .then(cache => cache.addAll(ASSETS))
+      .then(() => self.skipWaiting())  // Activa el SW inmediatamente
   );
 });
 
-// Estrategia Cache-First con actualización en segundo plano
+// ----- Estrategia: Cache-First -----
 self.addEventListener('fetch', (event) => {
-  // Solo manejar solicitudes GET del mismo origen
-  if (event.request.method !== 'GET' || !event.request.url.startsWith(self.location.origin)) {
+  // Ignora solicitudes externas o no-GET
+  if (!event.request.url.startsWith(self.location.origin) || event.request.method !== 'GET') {
     return;
   }
 
   event.respondWith(
     caches.match(event.request)
       .then(cachedResponse => {
-        // Intentar obtener de red primero
-        const fetchPromise = fetch(event.request)
-          .then(networkResponse => {
-            // Actualizar caché
+        // Devuelve caché o busca en red
+        return cachedResponse || fetch(event.request)
+          .then(response => {
+            // Opcional: Cachear nuevas respuestas
             return caches.open(CACHE_NAME)
               .then(cache => {
-                cache.put(event.request, networkResponse.clone());
-                return networkResponse;
+                cache.put(event.request, response.clone());
+                return response;
               });
-          })
-          .catch(() => cachedResponse); // Fallback a caché si hay error
-
-        return cachedResponse || fetchPromise;
+          });
       })
   );
 });
 
-// Limpieza de cachés antiguas
+// ----- Limpieza de cachés viejas -----
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cache => {
-          if (cache !== CACHE_NAME) {
-            console.log('Eliminando caché antigua:', cache);
-            return caches.delete(cache);
-          }
+          if (cache !== CACHE_NAME) return caches.delete(cache);
         })
       );
-    }).then(() => self.clients.claim())
+    }).then(() => self.clients.claim()) // Toma el control de la página
   );
 });
