@@ -190,9 +190,22 @@
       gap: 10px;
       margin: 15px 0;
     }
+
+    #offlineStatus {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.7);
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      display: none;
+    }
   </style>
 </head>
 <body>
+  <div id="offlineStatus">Modo offline</div>
+  
   <div id="gameScreen" style="display: none;">
     <canvas id="tetris" width="240" height="400"></canvas>
     <div id="pauseMenu">
@@ -286,7 +299,7 @@
   </div>
 
   <!-- Audio para efectos de sonido -->
-  <audio id="blockSound" preload="auto">
+  <audio id="blockSound" preload="auto" loop="false">
     <source src="audio.mpeg" type="audio/mpeg">
     Tu navegador no soporta audio HTML5.
   </audio>
@@ -298,6 +311,7 @@
     const scale = 20;
     ctx.scale(scale, scale);
     const blockSound = document.getElementById('blockSound');
+    const offlineStatus = document.getElementById('offlineStatus');
 
     // Pantallas
     const gameScreen = document.getElementById('gameScreen');
@@ -389,6 +403,11 @@
 
     // Inicialización
     function initGame() {
+      // Verificar conexión
+      updateOnlineStatus();
+      window.addEventListener('online', updateOnlineStatus);
+      window.addEventListener('offline', updateOnlineStatus);
+      
       // Cargar puntuación máxima
       highScore = localStorage.getItem('tetrisHighScore') || 0;
       highScoreDisplay.textContent = highScore;
@@ -406,8 +425,16 @@
       checkPWAInstallable();
 
       // Precargar sonido (opcional)
-      blockSound.volume = 0.3; // Ajustar volumen (0-1)
+      blockSound.volume = 0.3;
       blockSound.load();
+    }
+
+    function updateOnlineStatus() {
+      if (navigator.onLine) {
+        offlineStatus.style.display = 'none';
+      } else {
+        offlineStatus.style.display = 'block';
+      }
     }
 
     // Funciones del juego
@@ -869,6 +896,11 @@
       // Controles de teclado (para probar en desktop)
       document.addEventListener('keydown', event => {
         if (gameOver) return;
+        
+        // Prevenir comportamiento por defecto de las flechas y la tecla P
+        if (['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp', 'p', 'P'].includes(event.key)) {
+          event.preventDefault();
+        }
         
         switch(event.key) {
           case 'ArrowLeft': move(-1); break;
