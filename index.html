@@ -2,465 +2,160 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Tetris Móvil</title>
-  
-  <!-- Configuración PWA -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#ff6b6b">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tetris Offline Pro</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
       margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background-color: #222;
+      background: #222;
       color: white;
-      touch-action: manipulation;
+      font-family: Arial;
       overflow: hidden;
-      height: 100vh;
-      transition: background-color 0.3s, color 0.3s;
-    }
-    
-    #gameScreen {
-      width: 100%;
-      max-width: 500px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-    }
-    
-    #tetris {
-      border: 3px solid #555;
-      background-color: #111;
-      margin-top: 10px;
-      touch-action: none;
-    }
-    
-    #menuScreen, #customizeScreen {
-      width: 100%;
-      max-width: 500px;
-      padding: 20px;
-      box-sizing: border-box;
       text-align: center;
     }
-    
-    h1 {
-      color: #ff6b6b;
-      margin-bottom: 20px;
-    }
-    
-    button {
-      background-color: #4a4a4a;
-      color: inherit;
-      border: none;
-      padding: 12px 20px;
-      margin: 8px;
-      border-radius: 5px;
-      font-size: 16px;
-      cursor: pointer;
-      width: 80%;
-      max-width: 300px;
-    }
-    
-    button:active {
-      background-color: #5a5a5a;
-    }
-    
-    .stats {
+    #game-container {
       display: flex;
-      justify-content: space-around;
-      width: 100%;
-      margin: 10px 0;
-    }
-    
-    .stats div {
-      text-align: center;
-    }
-    
-    .color-picker {
-      display: flex;
-      flex-wrap: wrap;
       justify-content: center;
-      gap: 10px;
+      gap: 20px;
       margin-top: 20px;
     }
-    
-    .color-option {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 80px;
-    }
-    
-    .color-option label {
-      margin-bottom: 5px;
-      font-size: 14px;
-    }
-    
-    input[type="color"] {
-      width: 50px;
-      height: 50px;
+    canvas {
+      background: #111;
       border: 2px solid #555;
-      border-radius: 50%;
     }
-    
-    #gameOverScreen {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.8);
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 100;
-    }
-    
-    .controls-info {
-      margin-top: 20px;
-      font-size: 14px;
-      color: #aaa;
-      text-align: center;
-    }
-    
-    .install-btn {
-      background-color: #2ecc71;
-      margin-top: 15px;
-      display: none;
-    }
-    
-    #pauseMenu {
-      display: none;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: rgba(0, 0, 0, 0.8);
-      padding: 25px;
-      border-radius: 15px;
-      text-align: center;
-      z-index: 10;
-      width: 80%;
-      max-width: 300px;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-    }
-    
-    #pauseMenu h2 {
-      margin-top: 0;
-      margin-bottom: 20px;
-      color: #ff6b6b;
-    }
-    
-    #pauseMenu button {
-      margin: 10px auto;
-      display: block;
-      width: 90%;
-    }
-    
-    #resumeBtn {
-      background: linear-gradient(to bottom, #2ecc71, #27ae60);
-    }
-    
-    #menuFromGameBtn {
-      background: linear-gradient(to bottom, #e74c3c, #c0392b);
-    }
-    
-    .high-score {
-      font-size: 18px;
-      margin: 15px 0;
-      color: #ff6b6b;
-      font-weight: bold;
-    }
-    
-    .buttons-container {
+    #side-panel {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      width: 100%;
-      gap: 10px;
-      margin: 15px 0;
+      width: 100px;
+    }
+    #next-piece {
+      background: #111;
+      border: 2px solid #555;
+      margin-bottom: 20px;
+      height: 80px;
+    }
+    #hold-piece {
+      background: #111;
+      border: 2px solid #555;
+      height: 80px;
+    }
+    #stats {
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <div id="gameScreen" style="display: none;">
+  <h1>Tetris Offline</h1>
+  <div id="game-container">
+    <div id="side-panel">
+      <div>NEXT:</div>
+      <canvas id="next-piece" width="80" height="80"></canvas>
+      <div>HOLD:</div>
+      <canvas id="hold-piece" width="80" height="80"></canvas>
+      <div id="stats">
+        <div>Puntos: <span id="score-display">0</span></div>
+        <div>Nivel: <span id="level-display">1</span></div>
+        <div>Líneas: <span id="lines-display">0</span></div>
+      </div>
+    </div>
     <canvas id="tetris" width="240" height="400"></canvas>
-    <div id="pauseMenu">
-      <h2>Juego Pausado</h2>
-      <button id="resumeBtn">Continuar</button>
-      <button id="menuFromGameBtn">Menú Principal</button>
-    </div>
-    <div class="stats">
-      <div>Nivel: <span id="level">1</span></div>
-      <div>Líneas: <span id="lines">0</span></div>
-      <div>Puntos: <span id="score">0</span></div>
-    </div>
-    <button id="pauseBtn">Pausa</button>
-    <div class="controls-info">
-      Toque fuera de la pieza: Rotar<br>
-      Arrastre lateral: Mover<br>
-      Arrastre abajo: Bajar rápido
-    </div>
   </div>
-  
-  <div id="menuScreen">
-    <h1>Tetris Móvil</h1>
-    <div class="high-score">Puntuación máxima: <span id="highScoreDisplay">0</span></div>
-    <div class="buttons-container">
-      <button id="startBtn">Comenzar Juego</button>
-      <button id="customizeBtn">Personalizar Colores</button>
-    </div>
-    <button id="installBtn" class="install-btn">Instalar App</button>
-  </div>
-  
-  <div id="customizeScreen" style="display: none;">
-    <h1>Personalizar Colores</h1>
-    <div class="color-picker" id="colorPicker">
-      <div class="color-option">
-        <label>Fondo Pantalla</label>
-        <input type="color" id="bodyColor" value="#222222">
-      </div>
-      <div class="color-option">
-        <label>Color del Texto</label>
-        <input type="color" id="textColor" value="#ffffff">
-      </div>
-      <div class="color-option">
-        <label>Fondo Juego</label>
-        <input type="color" id="bgColor" value="#111111">
-      </div>
-      <div class="color-option">
-        <label>Borde</label>
-        <input type="color" id="borderColor" value="#555555">
-      </div>
-      <div class="color-option">
-        <label>Cuadrícula</label>
-        <input type="color" id="gridColor" value="#333333">
-      </div>
-      <div class="color-option">
-        <label>Pieza I</label>
-        <input type="color" id="colorI" value="#00FFFF">
-      </div>
-      <div class="color-option">
-        <label>Pieza O</label>
-        <input type="color" id="colorO" value="#FFFF00">
-      </div>
-      <div class="color-option">
-        <label>Pieza T</label>
-        <input type="color" id="colorT" value="#AA00FF">
-      </div>
-      <div class="color-option">
-        <label>Pieza S</label>
-        <input type="color" id="colorS" value="#00FF00">
-      </div>
-      <div class="color-option">
-        <label>Pieza Z</label>
-        <input type="color" id="colorZ" value="#FF0000">
-      </div>
-      <div class="color-option">
-        <label>Pieza J</label>
-        <input type="color" id="colorJ" value="#0000FF">
-      </div>
-      <div class="color-option">
-        <label>Pieza L</label>
-        <input type="color" id="colorL" value="#FFA500">
-      </div>
-    </div>
-    <button id="backBtn">Volver al Menú</button>
-  </div>
-  
-  <div id="gameOverScreen">
-    <h1>¡Game Over!</h1>
-    <p>Puntuación: <span id="finalScore">0</span></p>
-    <button id="restartBtn">Reiniciar</button>
-    <button id="menuBtn">Menú Principal</button>
-  </div>
-
-  <!-- Audio para efectos de sonido -->
-  <audio id="blockSound" preload="auto">
-    <source src="audio.mpeg" type="audio/mpeg">
-    Tu navegador no soporta audio HTML5.
-  </audio>
 
   <script>
-    // Elementos del juego
+    // Configuración inicial
     const canvas = document.getElementById('tetris');
     const ctx = canvas.getContext('2d');
+    const nextCanvas = document.getElementById('next-piece');
+    const nextCtx = nextCanvas.getContext('2d');
+    const holdCanvas = document.getElementById('hold-piece');
+    const holdCtx = holdCanvas.getContext('2d');
+    
     const scale = 20;
     ctx.scale(scale, scale);
-    const blockSound = document.getElementById('blockSound');
+    nextCtx.scale(scale/2, scale/2);
+    holdCtx.scale(scale/2, scale/2);
 
-    // Pantallas
-    const gameScreen = document.getElementById('gameScreen');
-    const menuScreen = document.getElementById('menuScreen');
-    const customizeScreen = document.getElementById('customizeScreen');
-    const gameOverScreen = document.getElementById('gameOverScreen');
-    const pauseMenu = document.getElementById('pauseMenu');
-
-    // Botones
-    const startBtn = document.getElementById('startBtn');
-    const customizeBtn = document.getElementById('customizeBtn');
-    const backBtn = document.getElementById('backBtn');
-    const pauseBtn = document.getElementById('pauseBtn');
-    const restartBtn = document.getElementById('restartBtn');
-    const menuBtn = document.getElementById('menuBtn');
-    const installBtn = document.getElementById('installBtn');
-    const resumeBtn = document.getElementById('resumeBtn');
-    const menuFromGameBtn = document.getElementById('menuFromGameBtn');
-
-    // Estadísticas
-    const levelDisplay = document.getElementById('level');
-    const linesDisplay = document.getElementById('lines');
-    const scoreDisplay = document.getElementById('score');
-    const finalScoreDisplay = document.getElementById('finalScore');
-    const highScoreDisplay = document.getElementById('highScoreDisplay');
-
-    // Selectores de color
-    const bodyColorPicker = document.getElementById('bodyColor');
-    const textColorPicker = document.getElementById('textColor');
-    const bgColorPicker = document.getElementById('bgColor');
-    const borderColorPicker = document.getElementById('borderColor');
-    const gridColorPicker = document.getElementById('gridColor');
-    const colorPickers = {
-      'I': document.getElementById('colorI'),
-      'O': document.getElementById('colorO'),
-      'T': document.getElementById('colorT'),
-      'S': document.getElementById('colorS'),
-      'Z': document.getElementById('colorZ'),
-      'J': document.getElementById('colorJ'),
-      'L': document.getElementById('colorL')
+    const arena = createMatrix(12, 20);
+    const colors = {
+      'I': '#00ffff', 'O': '#ffff00', 'T': '#aa00ff',
+      'S': '#00ff00', 'Z': '#ff0000', 'J': '#0000ff', 'L': '#ff8800'
     };
 
-    // Variables del juego
-    let arena = createMatrix(12, 20);
+    // Estado del juego
     let dropCounter = 0;
-    let dropInterval = 1000;
     let lastTime = 0;
-    let linesCleared = 0;
-    let level = 1;
+    let currentPiece = null;
+    let nextPiece = null;
+    let holdPiece = null;
+    let canHold = true;
     let score = 0;
-    let highScore = 0;
+    let level = 1;
+    let lines = 0;
+    let dropInterval = 1000;
     let gameOver = false;
     let isPaused = false;
-    let currentPiece = null;
-    let colors = {
-      'I': '#00FFFF',
-      'O': '#FFFF00',
-      'T': '#AA00FF',
-      'S': '#00FF00',
-      'Z': '#FF0000',
-      'J': '#0000FF',
-      'L': '#FFA500',
-      'background': '#111111',
-      'border': '#555555',
-      'grid': '#333333'
-    };
-
-    // Variables para control táctil
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let isTouching = false;
-    let touchMoved = false;
     let fastDrop = false;
-    let fastDropInterval = 50;
-    let lastMoveTime = 0;
-    const moveDelay = 100;
-    const ROTATION_DELAY = 100;
-
-    // Piezas del Tetris
-    const tetrominos = [
-      { shape: [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]], type: 'I' },
-      { shape: [[1, 1], [1, 1]], type: 'O' },
-      { shape: [[0, 1, 0], [1, 1, 1], [0, 0, 0]], type: 'T' },
-      { shape: [[0, 1, 1], [1, 1, 0], [0, 0, 0]], type: 'S' },
-      { shape: [[1, 1, 0], [0, 1, 1], [0, 0, 0]], type: 'Z' },
-      { shape: [[1, 0, 0], [1, 1, 1], [0, 0, 0]], type: 'J' },
-      { shape: [[0, 0, 1], [1, 1, 1], [0, 0, 0]], type: 'L' }
-    ];
 
     // Inicialización
-    function initGame() {
-      // Cargar puntuación máxima
-      highScore = localStorage.getItem('tetrisHighScore') || 0;
-      highScoreDisplay.textContent = highScore;
-      
-      // Cargar configuración de colores
-      const savedBodyColor = localStorage.getItem('tetrisBodyColor') || '#222222';
-      const savedTextColor = localStorage.getItem('tetrisTextColor') || '#ffffff';
-      
-      bodyColorPicker.value = savedBodyColor;
-      textColorPicker.value = savedTextColor;
-      
-      updateColors();
-      setupEventListeners();
-      showMenu();
-      checkPWAInstallable();
-
-      // Precargar sonido (opcional)
-      blockSound.volume = 0.3; // Ajustar volumen (0-1)
-      blockSound.load();
+    function init() {
+      currentPiece = createPiece();
+      nextPiece = createPiece();
+      updateStats();
+      update();
     }
 
     // Funciones del juego
     function createMatrix(w, h) {
-      const matrix = [];
-      while (h--) matrix.push(new Array(w).fill(0));
-      return matrix;
+      return Array(h).fill().map(() => Array(w).fill(0));
     }
 
     function createPiece() {
-      const rand = Math.floor(Math.random() * tetrominos.length);
-      const piece = JSON.parse(JSON.stringify(tetrominos[rand]));
+      const pieces = 'IJLOSTZ';
+      const type = pieces[Math.floor(Math.random() * pieces.length)];
+      const shapes = {
+        'I': [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
+        'O': [[1,1],[1,1]],
+        'T': [[0,1,0],[1,1,1],[0,0,0]],
+        'S': [[0,1,1],[1,1,0],[0,0,0]],
+        'Z': [[1,1,0],[0,1,1],[0,0,0]],
+        'J': [[1,0,0],[1,1,1],[0,0,0]],
+        'L': [[0,0,1],[1,1,1],[0,0,0]]
+      };
       return {
-        shape: piece.shape,
-        type: piece.type,
-        x: Math.floor(arena[0].length / 2) - Math.floor(piece.shape[0].length / 2),
+        type,
+        shape: shapes[type],
+        x: Math.floor(12/2) - Math.floor(shapes[type][0].length/2),
         y: 0
       };
     }
 
-    function rotate(matrix) {
-      const N = matrix.length;
-      const result = [];
-      for (let i = 0; i < N; i++) {
-        result.push([]);
-        for (let j = 0; j < N; j++) {
-          result[i][j] = matrix[N - j - 1][i];
-        }
-      }
-      return result;
-    }
-
-    function rotatePiece() {
-      if (gameOver || isPaused) return;
-      
-      const originalShape = currentPiece.shape;
-      const rotated = rotate(currentPiece.shape);
-      
-      if (currentPiece.type === 'O') return;
-      
-      currentPiece.shape = rotated;
-      if (collide(arena, currentPiece)) {
-        currentPiece.shape = originalShape;
-      }
+    function drawMatrix(matrix, offset, type, context, scale = 1) {
+      matrix.forEach((row, y) => {
+        row.forEach((value, x) => {
+          if (value !== 0) {
+            context.fillStyle = colors[type];
+            context.fillRect(
+              (x + offset.x) * scale, 
+              (y + offset.y) * scale, 
+              scale, scale
+            );
+            context.strokeStyle = '#000';
+            context.lineWidth = 0.1;
+            context.strokeRect(
+              (x + offset.x) * scale, 
+              (y + offset.y) * scale, 
+              scale, scale
+            );
+          }
+        });
+      });
     }
 
     function collide(arena, piece) {
       for (let y = 0; y < piece.shape.length; y++) {
         for (let x = 0; x < piece.shape[y].length; x++) {
           if (piece.shape[y][x] !== 0 &&
-              (arena[y + piece.y] === undefined || 
-               arena[y + piece.y][x + piece.x] === undefined || 
-               arena[y + piece.y][x + piece.x] !== 0)) {
+              (arena[y + piece.y] && arena[y + piece.y][x + piece.x]) !== 0) {
             return true;
           }
         }
@@ -476,127 +171,67 @@
           }
         });
       });
-
-      // Reproducir sonido al colocar pieza
-      playBlockSound();
-    }
-
-    function playBlockSound() {
-      // Reiniciar y reproducir sonido
-      blockSound.currentTime = 0;
-      blockSound.play().catch(e => console.log("Error al reproducir sonido:", e));
     }
 
     function clearLines() {
+      let linesCleared = 0;
       outer: for (let y = arena.length - 1; y >= 0; y--) {
         for (let x = 0; x < arena[y].length; x++) {
-          if (arena[y][x] === 0) {
-            continue outer;
-          }
+          if (arena[y][x] === 0) continue outer;
         }
-        
-        const row = arena.splice(y, 1)[0];
-        arena.unshift(new Array(row.length).fill(0));
+        arena.splice(y, 1);
+        arena.unshift(new Array(arena[0].length).fill(0));
         linesCleared++;
-        
-        // Calcular puntuación
-        const linePoints = [0, 40, 100, 300, 1200];
-        const lines = Math.min(4, 1);
-        score += linePoints[lines] * level;
-        
-        linesDisplay.textContent = `${linesCleared} (Máx: ${highScore})`;
-        scoreDisplay.textContent = score;
+      }
 
-        // Actualizar puntuación máxima si es necesario
-        if (score > highScore) {
-          highScore = score;
-          localStorage.setItem('tetrisHighScore', highScore);
-          highScoreDisplay.textContent = highScore;
-          linesDisplay.textContent = `${linesCleared} (Máx: ${highScore})`;
-        }
-
-        if (linesCleared >= level * 2) {
-          level++;
-          dropInterval = Math.max(100, 1000 - (level * 50));
-          levelDisplay.textContent = level;
-        }
-        
-        y++;
+      if (linesCleared > 0) {
+        // Cálculo de puntuación
+        const points = [0, 100, 300, 500, 800][linesCleared] * level;
+        score += points;
+        lines += linesCleared;
+        level = Math.floor(lines / 10) + 1;
+        dropInterval = Math.max(100, 1000 - (level * 50));
+        updateStats();
       }
     }
 
-    function draw() {
-      // Fondo
-      ctx.fillStyle = colors.background;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      // Cuadrícula
-      ctx.strokeStyle = colors.grid;
-      ctx.lineWidth = 0.05;
-      for (let x = 0; x < arena[0].length; x++) {
-        for (let y = 0; y < arena.length; y++) {
-          ctx.strokeRect(x, y, 1, 1);
-        }
-      }
-      
-      // Arena
-      drawMatrix(arena, { x: 0, y: 0 });
-      
-      // Pieza actual
-      if (currentPiece) {
-        drawMatrix(currentPiece.shape, currentPiece, currentPiece.type);
-      }
-      
-      // Borde
-      ctx.strokeStyle = colors.border;
-      ctx.lineWidth = 0.2;
-      ctx.strokeRect(0, 0, arena[0].length, arena.length);
+    function rotate(matrix) {
+      return matrix[0].map((_, i) => 
+        matrix.map(row => row[i]).reverse()
+      );
     }
 
-    function drawMatrix(matrix, offset, type = null) {
-      matrix.forEach((row, y) => {
-        row.forEach((value, x) => {
-          if (value !== 0) {
-            ctx.fillStyle = colors[type || value];
-            ctx.fillRect(x + offset.x, y + offset.y, 1, 1);
-            
-            ctx.strokeStyle = '#000';
-            ctx.lineWidth = 0.05;
-            ctx.strokeRect(x + offset.x, y + offset.y, 1, 1);
-          }
-        });
-      });
+    function rotatePiece() {
+      const shape = rotate(currentPiece.shape);
+      const originalX = currentPiece.x;
+      const originalShape = currentPiece.shape;
+      
+      // Sistema de wall kicks (5 intentos)
+      const offsets = [0, 1, -1, 2, -2];
+      for (const offset of offsets) {
+        currentPiece.x += offset;
+        currentPiece.shape = shape;
+        if (!collide(arena, currentPiece)) return;
+        currentPiece.x = originalX;
+      }
+      currentPiece.shape = originalShape;
     }
 
-    function update(time = 0) {
-      if (gameOver || isPaused) {
-        lastTime = time;
-        requestAnimationFrame(update);
-        return;
+    function holdCurrentPiece() {
+      if (!canHold) return;
+      
+      if (holdPiece) {
+        [currentPiece, holdPiece] = [holdPiece, currentPiece];
+        currentPiece.x = Math.floor(12/2) - Math.floor(currentPiece.shape[0].length/2);
+        currentPiece.y = 0;
+      } else {
+        holdPiece = currentPiece;
+        currentPiece = nextPiece;
+        nextPiece = createPiece();
       }
       
-      const deltaTime = time - lastTime;
-      lastTime = time;
-      dropCounter += deltaTime;
-
-      const currentDropInterval = fastDrop ? fastDropInterval : dropInterval;
-      
-      if (dropCounter > currentDropInterval) {
-        drop();
-        dropCounter = 0;
-      }
-
-      draw();
-      requestAnimationFrame(update);
-    }
-
-    function move(dir) {
-      if (gameOver || isPaused) return;
-      
-      currentPiece.x += dir;
-      if (collide(arena, currentPiece)) {
-        currentPiece.x -= dir;
-      }
+      canHold = false;
+      drawHoldPiece();
     }
 
     function drop() {
@@ -605,314 +240,134 @@
         currentPiece.y--;
         merge(arena, currentPiece);
         clearLines();
-        currentPiece = createPiece();
+        currentPiece = nextPiece;
+        nextPiece = createPiece();
+        canHold = true;
+        
         if (collide(arena, currentPiece)) {
-          endGame();
+          gameOver = true;
         }
       }
-    }
-
-    function handleTouchStart(e) {
-      if (gameOver || isPaused) return;
-      
-      e.preventDefault();
-      const touchX = e.touches[0].clientX;
-      const touchY = e.touches[0].clientY;
-      const rect = canvas.getBoundingClientRect();
-      
-      // Convertir coordenadas de pantalla a coordenadas del juego
-      const gameX = Math.floor((touchX - rect.left) / scale);
-      const gameY = Math.floor((touchY - rect.top) / scale);
-      
-      // Verificar si el toque está dentro de la pieza actual
-      let isTouchingPiece = false;
-      
-      for (let y = 0; y < currentPiece.shape.length; y++) {
-        for (let x = 0; x < currentPiece.shape[y].length; x++) {
-          if (currentPiece.shape[y][x] !== 0 && 
-              gameX === currentPiece.x + x && 
-              gameY === currentPiece.y + y) {
-            isTouchingPiece = true;
-            break;
-          }
-        }
-        if (isTouchingPiece) break;
-      }
-      
-      touchStartX = touchX;
-      touchStartY = touchY;
-      touchMoved = false;
-      
-      // Si no está tocando la pieza, marcar para posible rotación
-      if (!isTouchingPiece) {
-        setTimeout(() => {
-          if (!touchMoved && isTouching) {
-            rotatePiece();
-          }
-        }, ROTATION_DELAY);
-      }
-      
-      isTouching = true;
-    }
-
-    function handleTouchMove(e) {
-      if (gameOver || isPaused || !isTouching) return;
-      
-      e.preventDefault();
-      const touchX = e.touches[0].clientX;
-      const touchY = e.touches[0].clientY;
-      const deltaX = touchX - touchStartX;
-      const deltaY = touchY - touchStartY;
-      
-      if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
-        touchMoved = true;
-        
-        const now = Date.now();
-        if (now - lastMoveTime > moveDelay) {
-          // Mover horizontalmente
-          if (Math.abs(deltaX) > Math.abs(deltaY)) {
-            move(deltaX > 0 ? 1 : -1);
-          } 
-          // Mover verticalmente (descenso rápido)
-          else if (deltaY > 0) {
-            fastDrop = true;
-          }
-          
-          lastMoveTime = now;
-        }
-        
-        touchStartX = touchX;
-        touchStartY = touchY;
-      }
-    }
-
-    function handleTouchEnd(e) {
-      if (gameOver || isPaused) return;
-      
-      e.preventDefault();
-      isTouching = false;
-      fastDrop = false;
-    }
-
-    // Funciones de pantalla
-    function showGame() {
-      menuScreen.style.display = 'none';
-      customizeScreen.style.display = 'none';
-      gameOverScreen.style.display = 'none';
-      gameScreen.style.display = 'flex';
-      pauseMenu.style.display = 'none';
-      startGame();
-    }
-
-    function showMenu() {
-      menuScreen.style.display = 'block';
-      customizeScreen.style.display = 'none';
-      gameOverScreen.style.display = 'none';
-      gameScreen.style.display = 'none';
-      pauseMenu.style.display = 'none';
-      isPaused = false;
-    }
-
-    function showCustomize() {
-      menuScreen.style.display = 'none';
-      customizeScreen.style.display = 'block';
-      gameOverScreen.style.display = 'none';
-      gameScreen.style.display = 'none';
-      pauseMenu.style.display = 'none';
-    }
-
-    function showGameOver() {
-      finalScoreDisplay.textContent = score;
-      gameOverScreen.style.display = 'flex';
-      pauseMenu.style.display = 'none';
-    }
-
-    function togglePause() {
-      isPaused = !isPaused;
-      if (isPaused) {
-        pauseMenu.style.display = 'block';
-        pauseBtn.textContent = 'Continuar';
-      } else {
-        pauseMenu.style.display = 'none';
-        pauseBtn.textContent = 'Pausa';
-        update();
-      }
-    }
-
-    function updateColors() {
-      // Actualizar colores de las piezas
-      for (const [type, picker] of Object.entries(colorPickers)) {
-        colors[type] = picker.value;
-      }
-      
-      // Actualizar colores del tablero
-      colors.background = bgColorPicker.value;
-      colors.border = borderColorPicker.value;
-      colors.grid = gridColorPicker.value;
-      
-      // Aplicar cambios visuales
-      const bodyColor = bodyColorPicker.value;
-      const textColor = textColorPicker.value;
-      
-      document.body.style.backgroundColor = bodyColor;
-      document.body.style.color = textColor;
-      
-      // Guardar en localStorage
-      localStorage.setItem('tetrisBodyColor', bodyColor);
-      localStorage.setItem('tetrisTextColor', textColor);
-      
-      // Aplicar a botones (excepto los especiales)
-      const buttons = document.querySelectorAll('button:not(#resumeBtn):not(#menuFromGameBtn)');
-      buttons.forEach(button => {
-        button.style.color = textColor;
-      });
-      
-      canvas.style.backgroundColor = colors.background;
-      canvas.style.borderColor = colors.border;
-      
-      draw();
-    }
-
-    function startGame() {
-      arena = createMatrix(12, 20);
       dropCounter = 0;
-      dropInterval = 1000;
-      lastTime = 0;
-      linesCleared = 0;
-      level = 1;
-      score = 0;
-      gameOver = false;
-      isPaused = false;
-      
-      levelDisplay.textContent = level;
-      linesDisplay.textContent = `${linesCleared} (Máx: ${highScore})`;
-      scoreDisplay.textContent = score;
-      pauseBtn.textContent = 'Pausa';
-      pauseMenu.style.display = 'none';
-      
-      currentPiece = createPiece();
-      update();
     }
 
-    function endGame() {
-      gameOver = true;
-      if (score > highScore) {
-        highScore = score;
-        localStorage.setItem('tetrisHighScore', highScore);
-        highScoreDisplay.textContent = highScore;
+    function move(dir) {
+      currentPiece.x += dir;
+      if (collide(arena, currentPiece)) {
+        currentPiece.x -= dir;
       }
-      showGameOver();
     }
 
-    function resetGame() {
-      startGame();
-      showGame();
+    function draw() {
+      // Limpiar canvases
+      ctx.fillStyle = '#111';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      nextCtx.fillStyle = '#111';
+      nextCtx.fillRect(0, 0, nextCanvas.width, nextCanvas.height);
+      
+      // Dibujar arena y pieza actual
+      drawMatrix(arena, {x: 0, y: 0}, null, ctx);
+      drawMatrix(currentPiece.shape, currentPiece, currentPiece.type, ctx);
+      
+      // Dibujar siguiente pieza
+      const nextOffset = {
+        x: Math.floor(4 - nextPiece.shape[0].length/2),
+        y: Math.floor(4 - nextPiece.shape.length/2)
+      };
+      drawMatrix(nextPiece.shape, nextOffset, nextPiece.type, nextCtx, 2);
     }
 
-    // Funciones PWA
-    function checkPWAInstallable() {
-      let deferredPrompt;
+    function drawHoldPiece() {
+      holdCtx.fillStyle = '#111';
+      holdCtx.fillRect(0, 0, holdCanvas.width, holdCanvas.height);
       
-      window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        installBtn.style.display = 'block';
-      });
-      
-      installBtn.addEventListener('click', async () => {
-        if (deferredPrompt) {
-          deferredPrompt.prompt();
-          const { outcome } = await deferredPrompt.userChoice;
-          if (outcome === 'accepted') {
-            installBtn.style.display = 'none';
-          }
-          deferredPrompt = null;
-        }
-      });
-    }
-
-    function setupEventListeners() {
-      // Botones de pantalla
-      startBtn.addEventListener('click', showGame);
-      customizeBtn.addEventListener('click', showCustomize);
-      backBtn.addEventListener('click', showMenu);
-      restartBtn.addEventListener('click', resetGame);
-      menuBtn.addEventListener('click', showMenu);
-      resumeBtn.addEventListener('click', togglePause);
-      menuFromGameBtn.addEventListener('click', showMenu);
-      
-      // Pausa
-      pauseBtn.addEventListener('click', togglePause);
-      
-      // Pausar cuando se sale de la ventana
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'hidden' && !isPaused && !gameOver && gameScreen.style.display === 'flex') {
-          togglePause();
-        }
-      });
-      
-      // Selectores de color
-      bodyColorPicker.addEventListener('input', updateColors);
-      textColorPicker.addEventListener('input', updateColors);
-      bgColorPicker.addEventListener('input', updateColors);
-      borderColorPicker.addEventListener('input', updateColors);
-      gridColorPicker.addEventListener('input', updateColors);
-      for (const picker of Object.values(colorPickers)) {
-        picker.addEventListener('input', updateColors);
+      if (holdPiece) {
+        const holdOffset = {
+          x: Math.floor(4 - holdPiece.shape[0].length/2),
+          y: Math.floor(4 - holdPiece.shape.length/2)
+        };
+        drawMatrix(holdPiece.shape, holdOffset, holdPiece.type, holdCtx, 2);
       }
+    }
+
+    function updateStats() {
+      document.getElementById('score-display').textContent = score;
+      document.getElementById('level-display').textContent = level;
+      document.getElementById('lines-display').textContent = lines;
+    }
+
+    function update(time = 0) {
+      const deltaTime = time - lastTime;
+      lastTime = time;
       
-      // Controles táctiles mejorados
-      canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
-      canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-      canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
-      
-      // Controles de teclado (para probar en desktop)
-      document.addEventListener('keydown', event => {
-        if (gameOver) return;
+      if (!isPaused && !gameOver) {
+        dropCounter += deltaTime;
+        const currentDrop = fastDrop ? Math.max(20, 100 - (level * 10)) : dropInterval;
         
-        switch(event.key) {
-          case 'ArrowLeft': move(-1); break;
-          case 'ArrowRight': move(1); break;
-          case 'ArrowDown': 
-            fastDrop = true;
-            break;
-          case 'ArrowUp': rotatePiece(); break;
-          case 'p':
-          case 'P': 
-            togglePause();
-            break;
+        if (dropCounter > currentDrop) {
+          drop();
         }
-      });
-      
-      document.addEventListener('keyup', event => {
-        if (event.key === 'ArrowDown') {
-          fastDrop = false;
-        }
-      });
-      
-      // Registrar Service Worker
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('service-worker.js')
-            .then(registration => {
-              console.log('ServiceWorker registrado con éxito:', registration.scope);
-            })
-            .catch(error => {
-              console.log('Error al registrar ServiceWorker:', error);
-            });
-        });
       }
 
-      // Permitir sonido en móviles después de interacción
-      document.addEventListener('click', () => {
-        blockSound.play().then(() => {
-          console.log("Audio desbloqueado");
-        }).catch(e => console.log("Error al desbloquear audio:", e));
-      }, { once: true });
+      draw();
+      
+      if (gameOver) {
+        ctx.font = '2px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'red';
+        ctx.fillText('GAME OVER', 6, 10);
+        return;
+      }
+      
+      requestAnimationFrame(update);
     }
 
-    // Iniciar el juego cuando se carga la página
-    window.addEventListener('load', initGame);
+    // Controles
+    document.addEventListener('keydown', e => {
+      if (gameOver) return;
+      
+      switch(e.key) {
+        case 'ArrowLeft': 
+          e.preventDefault();
+          if (!isPaused) move(-1); 
+          break;
+        case 'ArrowRight': 
+          e.preventDefault();
+          if (!isPaused) move(1); 
+          break;
+        case 'ArrowDown': 
+          e.preventDefault();
+          if (!isPaused) fastDrop = true; 
+          break;
+        case 'ArrowUp': 
+          e.preventDefault();
+          if (!isPaused) rotatePiece(); 
+          break;
+        case ' ': 
+          e.preventDefault();
+          if (!isPaused) fastDrop = true; 
+          break;
+        case 'Shift': 
+          e.preventDefault();
+          if (!isPaused) holdCurrentPiece(); 
+          break;
+        case 'p': 
+        case 'P':
+          e.preventDefault();
+          isPaused = !isPaused;
+          if (!isPaused) update();
+          break;
+      }
+    });
+
+    document.addEventListener('keyup', e => {
+      if (e.key === 'ArrowDown' || e.key === ' ') {
+        fastDrop = false;
+      }
+    });
+
+    // Iniciar juego
+    init();
   </script>
 </body>
 </html>
